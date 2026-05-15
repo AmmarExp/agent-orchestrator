@@ -116,11 +116,11 @@ export function OutlookPanel() {
           className="flex items-center gap-2 px-4 py-3"
           style={{ borderBottom: "1px solid var(--color-border-token)" }}
         >
-          <Mail className="w-4 h-4" style={{ color: "#0078d4" }} />
+          <Mail className="w-4 h-4" style={{ color: "var(--color-outlook)" }} />
           <h2 className="text-[13px] font-semibold">Outlook Inbox</h2>
           <span
             className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
-            style={{ background: "rgba(0,120,212,0.14)", color: "#62b5f7" }}
+            style={{ background: "var(--color-outlook-highlight)", color: "var(--color-outlook)" }}
           >
             Outlook
           </span>
@@ -156,7 +156,7 @@ export function OutlookPanel() {
                 <div className="flex items-start gap-3">
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: "rgba(0,120,212,0.14)", color: "#62b5f7" }}
+                    style={{ background: "var(--color-outlook-highlight)", color: "var(--color-outlook)" }}
                   >
                     <Mail className="w-4 h-4" />
                   </div>
