@@ -84,17 +84,35 @@ export const generateChiefLinkCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { userId } = context;
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     const code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
-    const { error } = await supabaseAdmin
-      .from("profiles")
-      .update({
-        telegram_link_code: code,
-        telegram_link_code_expires_at: new Date(Date.now() + 60 * 60_000).toISOString(),
-      })
-      .eq("id", userId);
-    if (error) throw new Error(error.message);
+
+    // Try with supabaseAdmin first (bypasses RLS), fall back to user client
+    let saveError: unknown = null;
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { error } = await supabaseAdmin
+        .from("profiles")
+        .update({
+          telegram_link_code: code,
+          telegram_link_code_expires_at: new Date(Date.now() + 60 * 60_000).toISOString(),
+        })
+        .eq("id", userId);
+      saveError = error ?? null;
+    } catch {
+      // supabaseAdmin not configured — fall back to user-scoped client
+      const { supabase, userId: uid } = context;
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          telegram_link_code: code,
+          telegram_link_code_expires_at: new Date(Date.now() + 60 * 60_000).toISOString(),
+        })
+        .eq("id", uid);
+      saveError = error ?? null;
+    }
+
+    if (saveError) throw new Error((saveError as { message?: string }).message ?? "Failed to save link code");
     return { code };
   });
 
