@@ -18,7 +18,7 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <aside
-      className="flex flex-col fixed top-0 left-0 h-dvh z-[100]"
+      className="hidden md:flex flex-col fixed top-0 left-0 h-dvh z-[100]"
       style={{
         width: "var(--sidebar-w)",
         background: "var(--color-surface)",
