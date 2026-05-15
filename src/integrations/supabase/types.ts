@@ -19,6 +19,7 @@ export type Database = {
           autonomy: number
           created_at: string
           id: string
+          is_chief: boolean
           model: string
           name: string
           role: string
@@ -33,6 +34,7 @@ export type Database = {
           autonomy?: number
           created_at?: string
           id?: string
+          is_chief?: boolean
           model?: string
           name: string
           role?: string
@@ -47,6 +49,7 @@ export type Database = {
           autonomy?: number
           created_at?: string
           id?: string
+          is_chief?: boolean
           model?: string
           name?: string
           role?: string
@@ -55,6 +58,33 @@ export type Database = {
           task_count?: number
           tools?: string[]
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chief_messages: {
+        Row: {
+          created_at: string
+          direction: Database["public"]["Enums"]["chief_msg_direction"]
+          id: string
+          telegram_message_id: number | null
+          text: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          direction: Database["public"]["Enums"]["chief_msg_direction"]
+          id?: string
+          telegram_message_id?: number | null
+          text: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          direction?: Database["public"]["Enums"]["chief_msg_direction"]
+          id?: string
+          telegram_message_id?: number | null
+          text?: string
           user_id?: string
         }
         Relationships: []
@@ -110,6 +140,9 @@ export type Database = {
           created_at: string
           display_name: string | null
           id: string
+          telegram_chat_id: number | null
+          telegram_link_code: string | null
+          telegram_link_code_expires_at: string | null
           theme: string
           updated_at: string
         }
@@ -118,6 +151,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id: string
+          telegram_chat_id?: number | null
+          telegram_link_code?: string | null
+          telegram_link_code_expires_at?: string | null
           theme?: string
           updated_at?: string
         }
@@ -126,6 +162,9 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           id?: string
+          telegram_chat_id?: number | null
+          telegram_link_code?: string | null
+          telegram_link_code_expires_at?: string | null
           theme?: string
           updated_at?: string
         }
@@ -225,6 +264,7 @@ export type Database = {
     }
     Enums: {
       agent_status: "idle" | "running" | "error"
+      chief_msg_direction: "in" | "out"
       feed_kind:
         | "agent_created"
         | "agent_updated"
@@ -365,6 +405,7 @@ export const Constants = {
   public: {
     Enums: {
       agent_status: ["idle", "running", "error"],
+      chief_msg_direction: ["in", "out"],
       feed_kind: [
         "agent_created",
         "agent_updated",
