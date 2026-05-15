@@ -25,7 +25,9 @@ export function Topbar() {
       .catch(() => {
         if (mounted) setUnread(null);
       });
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [getUnread, user]);
 
   return (
@@ -37,8 +39,14 @@ export function Topbar() {
         borderBottom: "1px solid var(--color-border-token)",
       }}
     >
-      <div className="flex items-center gap-1.5 text-[13px]" style={{ color: "var(--color-text-muted)" }}>
-        AgentOS <span style={{ color: "var(--color-text)" }} className="font-medium capitalize">/ {crumb}</span>
+      <div
+        className="flex items-center gap-1.5 text-[13px]"
+        style={{ color: "var(--color-text-muted)" }}
+      >
+        AgentOS{" "}
+        <span style={{ color: "var(--color-text)" }} className="font-medium capitalize">
+          / {crumb}
+        </span>
       </div>
       <div className="flex-1" />
       <button

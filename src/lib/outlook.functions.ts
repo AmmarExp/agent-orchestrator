@@ -80,10 +80,10 @@ function toOutlookMessage(row: Record<string, unknown>): OutlookMessage {
 async function fetchOutlookMessages(limit: number, filter?: string) {
   const payload = await callOutlook<{ value?: Record<string, unknown>[] }>(
     graphPath("/me/messages", {
-      "$top": Math.min(Math.max(limit, 1), 25),
-      "$orderby": "receivedDateTime desc",
-      "$select": "id,subject,from,receivedDateTime,bodyPreview,importance,isRead,webLink",
-      "$filter": filter,
+      $top: Math.min(Math.max(limit, 1), 25),
+      $orderby: "receivedDateTime desc",
+      $select: "id,subject,from,receivedDateTime,bodyPreview,importance,isRead,webLink",
+      $filter: filter,
     }),
   );
   return (payload.value ?? []).map(toOutlookMessage).filter((message) => message.id);
@@ -106,7 +106,8 @@ async function getOrCreateEmailAgent(supabase: { from: (table: string) => any },
       name: EMAIL_AGENT_NAME,
       role: "Email",
       model: "google/gemini-3-flash-preview",
-      system_prompt: "You triage Microsoft Outlook inboxes, draft professional replies, and turn important messages into actionable tasks.",
+      system_prompt:
+        "You triage Microsoft Outlook inboxes, draft professional replies, and turn important messages into actionable tasks.",
       tools: ["Microsoft Outlook", "AI"],
       autonomy: 2,
     })
@@ -121,14 +122,15 @@ export const getOutlookUnreadCount = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
     const credentials = getOutlookCredentials();
-    if (!credentials.connected) return { connected: false, unread: 0, message: credentials.message };
+    if (!credentials.connected)
+      return { connected: false, unread: 0, message: credentials.message };
 
     const payload = await callOutlook<{ "@odata.count"?: number; value?: unknown[] }>(
       graphPath("/me/messages", {
-        "$filter": "isRead eq false",
-        "$top": 1,
-        "$count": "true",
-        "$select": "id",
+        $filter: "isRead eq false",
+        $top: 1,
+        $count: "true",
+        $select: "id",
       }),
       { headers: { ConsistencyLevel: "eventual" } },
     );
@@ -139,17 +141,24 @@ export const getOutlookUnreadCount = createServerFn({ method: "GET" })
 export const getOutlookMessages = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ mode: z.enum(["unread", "important", "recent"]).default("important"), limit: z.number().min(1).max(25).default(12) }).parse(input ?? {}),
+    z
+      .object({
+        mode: z.enum(["unread", "important", "recent"]).default("important"),
+        limit: z.number().min(1).max(25).default(12),
+      })
+      .parse(input ?? {}),
   )
   .handler(async ({ data }) => {
     const credentials = getOutlookCredentials();
-    if (!credentials.connected) return { connected: false, messages: [] as OutlookMessage[], message: credentials.message };
+    if (!credentials.connected)
+      return { connected: false, messages: [] as OutlookMessage[], message: credentials.message };
 
-    const filter = data.mode === "unread"
-      ? "isRead eq false"
-      : data.mode === "important"
-        ? "importance eq 'high' or isRead eq false"
-        : undefined;
+    const filter =
+      data.mode === "unread"
+        ? "isRead eq false"
+        : data.mode === "important"
+          ? "importance eq 'high' or isRead eq false"
+          : undefined;
     const messages = await fetchOutlookMessages(data.limit, filter);
     return { connected: true, messages };
   });
@@ -159,14 +168,28 @@ export const summarizeOutlookEmails = createServerFn({ method: "POST" })
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
     const credentials = getOutlookCredentials();
-    if (!credentials.connected) return { connected: false, summary: "", messages: [] as OutlookMessage[], message: credentials.message };
+    if (!credentials.connected)
+      return {
+        connected: false,
+        summary: "",
+        messages: [] as OutlookMessage[],
+        message: credentials.message,
+      };
 
     const messages = await fetchOutlookMessages(10, "importance eq 'high' or isRead eq false");
-    await supabase.from("feed_events").insert({ user_id: userId, kind: "log", message: `Outlook Agent scanned ${messages.length} important emails` });
+    await supabase
+      .from("feed_events")
+      .insert({
+        user_id: userId,
+        kind: "log",
+        message: `Outlook Agent scanned ${messages.length} important emails`,
+      });
 
     if (messages.length === 0) {
       const summary = "No unread or high-importance Outlook emails need attention right now.";
-      await supabase.from("feed_events").insert({ user_id: userId, kind: "log", message: "Outlook Agent completed inbox summary" });
+      await supabase
+        .from("feed_events")
+        .insert({ user_id: userId, kind: "log", message: "Outlook Agent completed inbox summary" });
       return { connected: true, summary, messages };
     }
 
@@ -175,22 +198,27 @@ export const summarizeOutlookEmails = createServerFn({ method: "POST" })
     const gateway = createLovableAiGateway(apiKey);
     const { text } = await generateText({
       model: gateway("google/gemini-3-flash-preview"),
-      system: "You are an executive email triage assistant. Be concise, specific, and action-oriented.",
+      system:
+        "You are an executive email triage assistant. Be concise, specific, and action-oriented.",
       prompt: `Summarize these Outlook emails into: 1) top priorities, 2) suggested replies, 3) task candidates. Emails:\n${JSON.stringify(messages, null, 2)}`,
     });
 
-    await supabase.from("feed_events").insert({ user_id: userId, kind: "log", message: "Outlook Agent completed inbox summary" });
+    await supabase
+      .from("feed_events")
+      .insert({ user_id: userId, kind: "log", message: "Outlook Agent completed inbox summary" });
     return { connected: true, summary: text, messages };
   });
 
 export const sendOutlookEmail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({
-      to: z.string().email(),
-      subject: z.string().min(1).max(200),
-      body: z.string().min(1).max(8000),
-    }).parse(input),
+    z
+      .object({
+        to: z.string().email(),
+        subject: z.string().min(1).max(200),
+        body: z.string().min(1).max(8000),
+      })
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
@@ -205,7 +233,13 @@ export const sendOutlookEmail = createServerFn({ method: "POST" })
         },
       }),
     });
-    await supabase.from("feed_events").insert({ user_id: userId, kind: "log", message: `Email Agent sent Outlook email to ${data.to}` });
+    await supabase
+      .from("feed_events")
+      .insert({
+        user_id: userId,
+        kind: "log",
+        message: `Email Agent sent Outlook email to ${data.to}`,
+      });
     return { ok: true };
   });
 
@@ -216,7 +250,7 @@ export const makeTaskFromOutlookEmail = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
     const message = await callOutlook<Record<string, unknown>>(
       graphPath(`/me/messages/${encodeURIComponent(data.messageId)}`, {
-        "$select": "id,subject,from,receivedDateTime,bodyPreview,importance,body,webLink",
+        $select: "id,subject,from,receivedDateTime,bodyPreview,importance,body,webLink",
       }),
     );
     const email = toOutlookMessage(message);
@@ -228,11 +262,19 @@ export const makeTaskFromOutlookEmail = createServerFn({ method: "POST" })
       email.webLink ? `Outlook link: ${email.webLink}` : "",
       "",
       email.preview,
-    ].filter(Boolean).join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     const { data: task, error } = await supabase
       .from("tasks")
-      .insert({ user_id: userId, agent_id: agent.id, title: taskTitle, description, priority: email.importance === "high" ? "high" : "med" })
+      .insert({
+        user_id: userId,
+        agent_id: agent.id,
+        title: taskTitle,
+        description,
+        priority: email.importance === "high" ? "high" : "med",
+      })
       .select("id, title")
       .single();
     if (error || !task) throw new Error(error?.message || "Could not create task from email");
@@ -247,12 +289,33 @@ export const makeTaskFromOutlookEmail = createServerFn({ method: "POST" })
     });
 
     await supabase.from("task_steps").insert([
-      { user_id: userId, task_id: task.id, type: "thought", content: `Triage email from ${email.fromName}` },
-      { user_id: userId, task_id: task.id, type: "action", content: "Generated task plan with Lovable AI" },
+      {
+        user_id: userId,
+        task_id: task.id,
+        type: "thought",
+        content: `Triage email from ${email.fromName}`,
+      },
+      {
+        user_id: userId,
+        task_id: task.id,
+        type: "action",
+        content: "Generated task plan with Lovable AI",
+      },
       { user_id: userId, task_id: task.id, type: "result", content: plan },
     ]);
-    await supabase.from("agents").update({ task_count: (agent.task_count ?? 0) + 1 }).eq("id", agent.id);
-    await supabase.from("feed_events").insert({ user_id: userId, kind: "task_created", agent_id: agent.id, task_id: task.id, message: `Created task from Outlook email: ${email.subject}` });
+    await supabase
+      .from("agents")
+      .update({ task_count: (agent.task_count ?? 0) + 1 })
+      .eq("id", agent.id);
+    await supabase
+      .from("feed_events")
+      .insert({
+        user_id: userId,
+        kind: "task_created",
+        agent_id: agent.id,
+        task_id: task.id,
+        message: `Created task from Outlook email: ${email.subject}`,
+      });
 
     return { ok: true, taskId: task.id, plan };
   });
