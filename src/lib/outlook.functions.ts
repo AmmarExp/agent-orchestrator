@@ -33,7 +33,7 @@ function getOutlookCredentials() {
   return { connected: true as const, lovableApiKey, outlookApiKey };
 }
 
-async function callOutlook<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function callOutlook<T>(path: string, init: RequestInit = {}, attempt = 0): Promise<T> {
   const credentials = getOutlookCredentials();
   if (!credentials.connected) throw new Error(credentials.message);
 
@@ -48,11 +48,16 @@ async function callOutlook<T>(path: string, init: RequestInit = {}): Promise<T> 
   });
 
   const text = await response.text();
-  const payload = text ? JSON.parse(text) : {};
   if (!response.ok) {
+    if (response.status === 429 && attempt < 3) {
+      const retryAfter = Number(response.headers.get("retry-after")) || 0;
+      const delay = retryAfter > 0 ? retryAfter * 1000 : 800 * Math.pow(2, attempt);
+      await new Promise((r) => setTimeout(r, delay));
+      return callOutlook<T>(path, init, attempt + 1);
+    }
     throw new Error(`Outlook API call failed [${response.status}]: ${text || response.statusText}`);
   }
-  return payload as T;
+  return (text ? JSON.parse(text) : {}) as T;
 }
 
 function graphPath(path: string, params: Record<string, string | number | undefined>) {
