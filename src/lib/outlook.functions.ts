@@ -161,13 +161,15 @@ export const getOutlookMessages = createServerFn({ method: "GET" })
       return { connected: false, messages: [] as OutlookMessage[], message: credentials.message };
 
     const filter =
-      data.mode === "unread"
-        ? "isRead eq false"
-        : data.mode === "important"
-          ? "importance eq 'high' or isRead eq false"
-          : undefined;
+      data.mode === "unread" || data.mode === "important" ? "isRead eq false" : undefined;
     const messages = await fetchOutlookMessages(data.limit, filter);
-    return { connected: true, messages };
+    const sorted =
+      data.mode === "important"
+        ? [...messages].sort((a, b) =>
+            a.importance === b.importance ? 0 : a.importance === "high" ? -1 : 1,
+          )
+        : messages;
+    return { connected: true, messages: sorted };
   });
 
 export const summarizeOutlookEmails = createServerFn({ method: "POST" })
