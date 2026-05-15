@@ -3,19 +3,20 @@ import { createHash } from "crypto";
 const TG_BASE = "https://api.telegram.org/bot";
 
 export function getTelegramCreds() {
-  const tg = process.env.TELEGRAM_API_KEY;
+  const tg = process.env.TELEGRAM_API_KEY?.trim();
   if (!tg) return null;
   return { tg };
 }
 
 export function deriveTelegramWebhookSecret(tgApiKey: string) {
-  return createHash("sha256").update("telegram-webhook:" + tgApiKey).digest("base64url");
+  return createHash("sha256").update("telegram-webhook:" + tgApiKey.trim()).digest("base64url");
 }
 
 export async function tgCall<T = unknown>(method: string, body: Record<string, unknown>): Promise<T> {
   const c = getTelegramCreds();
   if (!c) throw new Error("Telegram is not connected.");
-  const r = await fetch(`${TG_BASE}${c.tg}/${method}`, {
+  const url = `${TG_BASE}${c.tg}/${method}`;
+  const r = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),

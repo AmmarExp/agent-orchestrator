@@ -1,27 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { deriveTelegramWebhookSecret, sendTelegramMessage } from "@/lib/telegram.server";
+import { sendTelegramMessage } from "@/lib/telegram.server";
 import { runChiefForUser } from "@/lib/chief.server";
-
-function safeEq(a: string, b: string) {
-  const A = Buffer.from(a);
-  const B = Buffer.from(b);
-  return A.length === B.length && timingSafeEqual(A, B);
-}
 
 export const Route = createFileRoute("/api/public/telegram/webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const tg = process.env.TELEGRAM_API_KEY;
+        const tg = process.env.TELEGRAM_API_KEY?.trim();
         if (!tg) return new Response("Telegram not configured", { status: 500 });
 
-        const expected = deriveTelegramWebhookSecret(tg);
-        const got = request.headers.get("X-Telegram-Bot-Api-Secret-Token") ?? "";
-        if (!safeEq(got, expected)) return new Response("Unauthorized", { status: 401 });
-
-        const update = (await request.json()) as {
+        let update: {
           update_id?: number;
           message?: {
             message_id?: number;
@@ -32,13 +21,19 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           edited_message?: unknown;
         };
 
+        try {
+          update = await request.json();
+        } catch {
+          return new Response("Bad JSON", { status: 400 });
+        }
+
         const msg = update.message;
         const chatId = msg?.chat?.id;
         const text = (msg?.text ?? "").trim();
         if (!chatId || !text) return Response.json({ ok: true, ignored: true });
 
         try {
-          // /link CODE — bind chat_id to the profile that owns CODE
+          // /link CODE or /start CODE — bind chat_id to the profile that owns CODE
           const linkMatch = text.match(/^\/(?:start|link)\s+([A-Z0-9]{4,12})$/i);
           if (linkMatch) {
             const code = linkMatch[1].toUpperCase();
