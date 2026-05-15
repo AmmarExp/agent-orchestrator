@@ -127,6 +127,28 @@ export const sendChiefMessageFromApp = createServerFn({ method: "POST" })
     return { reply };
   });
 
+export const unlinkTelegram = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { userId } = context;
+    try {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { error } = await supabaseAdmin
+        .from("profiles")
+        .update({ telegram_chat_id: null, telegram_link_code: null, telegram_link_code_expires_at: null })
+        .eq("id", userId);
+      if (error) throw new Error(error.message);
+    } catch {
+      const { supabase, userId: uid } = context;
+      const { error } = await supabase
+        .from("profiles")
+        .update({ telegram_chat_id: null, telegram_link_code: null, telegram_link_code_expires_at: null })
+        .eq("id", uid);
+      if (error) throw new Error(error.message);
+    }
+    return { ok: true };
+  });
+
 export const registerTelegramWebhook = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) => z.object({ url: z.string().url() }).parse(input))

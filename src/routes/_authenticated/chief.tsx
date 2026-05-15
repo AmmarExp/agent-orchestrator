@@ -12,6 +12,7 @@ import {
   getChiefStatus,
   registerTelegramWebhook,
   sendChiefMessageFromApp,
+  unlinkTelegram,
 } from "@/lib/chief.functions";
 
 export const Route = createFileRoute("/_authenticated/chief")({
@@ -107,6 +108,23 @@ function ChiefPage() {
     }
   };
 
+  const unlink = useServerFn(unlinkTelegram);
+  const [unlinking, setUnlinking] = useState(false);
+
+  const handleUnlink = async () => {
+    if (!confirm("Unlink your Telegram account from Chief? You can re-link any time.")) return;
+    setUnlinking(true);
+    try {
+      await unlink();
+      toast.success("Telegram unlinked");
+      refetch();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to unlink");
+    } finally {
+      setUnlinking(false);
+    }
+  };
+
   const handleRegisterHook = async () => {
     try {
       const url = `${window.location.origin}/api/public/telegram/webhook`;
@@ -140,7 +158,18 @@ function ChiefPage() {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          {data?.linkedChatId && (
+            <button
+              onClick={handleUnlink}
+              disabled={unlinking}
+              className="flex items-center gap-2 px-3 py-2 rounded-md text-[12.5px] font-medium disabled:opacity-50"
+              style={{ background: "#ef444420", color: "#ef4444", border: "1px solid #ef444440" }}
+            >
+              <Link2 className="w-3.5 h-3.5" />
+              {unlinking ? "Unlinking…" : "Unlink Telegram"}
+            </button>
+          )}
           <button
             onClick={handleRegisterHook}
             className="flex items-center gap-2 px-3 py-2 rounded-md text-[12.5px] font-medium"
