@@ -33,7 +33,7 @@ function getOutlookCredentials() {
   return { connected: true as const, lovableApiKey, outlookApiKey };
 }
 
-async function callOutlook<T>(path: string, init: RequestInit = {}): Promise<T> {
+async function callOutlook<T>(path: string, init: RequestInit = {}, attempt = 0): Promise<T> {
   const credentials = getOutlookCredentials();
   if (!credentials.connected) throw new Error(credentials.message);
 
@@ -48,11 +48,16 @@ async function callOutlook<T>(path: string, init: RequestInit = {}): Promise<T> 
   });
 
   const text = await response.text();
-  const payload = text ? JSON.parse(text) : {};
   if (!response.ok) {
+    if (response.status === 429 && attempt < 3) {
+      const retryAfter = Number(response.headers.get("retry-after")) || 0;
+      const delay = retryAfter > 0 ? retryAfter * 1000 : 800 * Math.pow(2, attempt);
+      await new Promise((r) => setTimeout(r, delay));
+      return callOutlook<T>(path, init, attempt + 1);
+    }
     throw new Error(`Outlook API call failed [${response.status}]: ${text || response.statusText}`);
   }
-  return payload as T;
+  return (text ? JSON.parse(text) : {}) as T;
 }
 
 function graphPath(path: string, params: Record<string, string | number | undefined>) {
@@ -156,13 +161,15 @@ export const getOutlookMessages = createServerFn({ method: "GET" })
       return { connected: false, messages: [] as OutlookMessage[], message: credentials.message };
 
     const filter =
-      data.mode === "unread"
-        ? "isRead eq false"
-        : data.mode === "important"
-          ? "importance eq 'high' or isRead eq false"
-          : undefined;
+      data.mode === "unread" || data.mode === "important" ? "isRead eq false" : undefined;
     const messages = await fetchOutlookMessages(data.limit, filter);
-    return { connected: true, messages };
+    const sorted =
+      data.mode === "important"
+        ? [...messages].sort((a, b) =>
+            a.importance === b.importance ? 0 : a.importance === "high" ? -1 : 1,
+          )
+        : messages;
+    return { connected: true, messages: sorted };
   });
 
 export const summarizeOutlookEmails = createServerFn({ method: "POST" })
@@ -178,7 +185,7 @@ export const summarizeOutlookEmails = createServerFn({ method: "POST" })
         message: credentials.message,
       };
 
-    const messages = await fetchOutlookMessages(10, "importance eq 'high' or isRead eq false");
+    const messages = await fetchOutlookMessages(10, "isRead eq false");
     await supabase.from("feed_events").insert({
       user_id: userId,
       kind: "log",
