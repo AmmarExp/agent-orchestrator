@@ -50,7 +50,7 @@ export function Topbar() {
       </div>
       <div className="flex-1" />
       <button
-        className="flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12.5px] transition-colors"
+        className="hidden sm:flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12.5px] transition-colors"
         style={{
           background: "var(--color-surface-offset)",
           border: "1px solid var(--color-border-token)",
@@ -77,7 +77,7 @@ export function Topbar() {
         {unread !== null && unread > 0 && (
           <span
             className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
-            style={{ background: "#0078d4", color: "#fff" }}
+            style={{ background: "var(--color-outlook)", color: "var(--color-primary-foreground)" }}
           >
             {unread > 99 ? "99+" : unread}
           </span>
