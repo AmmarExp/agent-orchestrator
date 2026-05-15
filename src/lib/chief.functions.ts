@@ -83,13 +83,15 @@ export const getChiefStatus = createServerFn({ method: "GET" })
 export const generateChiefLinkCode = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context;
-    const code = Math.random().toString(36).slice(2, 8).toUpperCase();
-    const { error } = await supabase
+    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const code = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+    const { error } = await supabaseAdmin
       .from("profiles")
       .update({
         telegram_link_code: code,
-        telegram_link_code_expires_at: new Date(Date.now() + 30 * 60_000).toISOString(),
+        telegram_link_code_expires_at: new Date(Date.now() + 60 * 60_000).toISOString(),
       })
       .eq("id", userId);
     if (error) throw new Error(error.message);

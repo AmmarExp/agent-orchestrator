@@ -1,0 +1,113 @@
+I have a TanStack React Start app (AgentOS) deployed on Lovable.
+The app has a Telegram bot integration. Here is the EXACT bug and what needs to be fixed:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐛 BUG #1 — "Generate link code" button does nothing useful
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FILE: src/routes/_authenticated/chief.tsx
+
+The button labeled "Generate link code" currently only shows a 
+code in the UI but does NOT save it to Supabase. 
+
+The webhook handler (src/routes/api/public/telegram/webhook.ts) 
+looks up the code from the database:
+
+  await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .eq("telegram_link_code", code)
+    .maybeSingle();
+
+So if telegram_link_code is NULL in the profiles table → 
+/link YOURCODE always returns "❌ Invalid or expired link code"
+
+FIX NEEDED:
+Create a server action (or API route) that:
+1. Generates a random 6-char uppercase alphanumeric code
+2. Updates profiles table:
+   SET telegram_link_code = <code>,
+       telegram_link_code_expires_at = now() + interval '1 hour'
+   WHERE id = auth.uid()
+3. Returns the code to the frontend to display
+4. The "Generate link code" button must call this server action
+
+Use supabaseAdmin (service role) for the update so RLS doesn't block it.
+Import it from: @/integrations/supabase/client.server
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐛 BUG #2 — Chief replies not saved to chief_messages table
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FILE: src/routes/api/public/telegram/webhook.ts
+
+After Chief generates a reply and sends it via Telegram, 
+the outgoing message is NOT saved to chief_messages table.
+
+Current code (around line 60):
+  const reply = await runChiefForUser(supabaseAdmin, profile.id, text);
+  await sendTelegramMessage(chatId, reply);
+  // ← MISSING: save outgoing message to DB
+
+FIX NEEDED: After sendTelegramMessage, add:
+  await supabaseAdmin.from("chief_messages").insert({
+    user_id: profile.id,
+    direction: "out",
+    text: reply,
+  });
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🐛 BUG #3 — "Register webhook" button may use wrong URL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FILE: src/routes/_authenticated/chief.tsx
+
+The "Register webhook" button must call Telegram's setWebhook API 
+pointing to the PRODUCTION URL of the app, not localhost.
+
+The webhook URL should be:
+  https://<YOUR_LOVABLE_APP_DOMAIN>/api/public/telegram/webhook
+
+FIX NEEDED:
+When registering webhook, use:
+  const appUrl = window.location.origin;
+  const webhookUrl = `${appUrl}/api/public/telegram/webhook`;
+  
+Then call:
+  https://api.telegram.org/bot<TELEGRAM_API_KEY>/setWebhook
+  body: { url: webhookUrl, allowed_updates: ["message"] }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 DB SCHEMA (already migrated, for reference):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+profiles table has:
+  - telegram_chat_id bigint
+  - telegram_link_code text
+  - telegram_link_code_expires_at timestamptz
+
+chief_messages table:
+  - id uuid
+  - user_id uuid
+  - direction enum('in', 'out')
+  - text text
+  - telegram_message_id bigint
+  - created_at timestamptz
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ AFTER FIXING ALL 3 BUGS, the flow should work like this:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. User opens Chief page → clicks "Register webhook" 
+   → Telegram now forwards messages to our app
+2. User clicks "Generate link code" 
+   → code saved to DB, shown in UI (e.g. "AGENTOS")
+3. User opens @Ammar_assist_bot in Telegram
+   → sends: /link AGENTOS
+   → bot replies: ✅ Linked! I'm Chief — your AI chief of staff.
+4. User sends any message in Arabic or English
+   → Chief replies via Telegram
+   → conversation mirrors live in the dashboard UI
+
+Please fix all 3 bugs. Show me the complete updated file content 
+for each changed file.

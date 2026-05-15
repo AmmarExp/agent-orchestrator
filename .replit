@@ -14,6 +14,7 @@ SUPABASE_URL = "https://ojguactuikhvsorkjvdx.supabase.co"
 VITE_SUPABASE_PROJECT_ID = "ojguactuikhvsorkjvdx"
 VITE_SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qZ3VhY3R1aWtodnNvcmtqdmR4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg4NTY0NjUsImV4cCI6MjA5NDQzMjQ2NX0.QKpA5BflGzb6nJ6Oi-fMK2SN_zCdCawd17YZaf9qN-E"
 VITE_SUPABASE_URL = "https://ojguactuikhvsorkjvdx.supabase.co"
+TELEGRAM_API_KEY = "8209340508:AAHnrt8KCTN10mr_g_GdAN0Tm3EQ2EBLuX4"
 
 [workflows]
 runButton = "Project"
