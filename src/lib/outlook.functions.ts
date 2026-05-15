@@ -179,13 +179,11 @@ export const summarizeOutlookEmails = createServerFn({ method: "POST" })
       };
 
     const messages = await fetchOutlookMessages(10, "importance eq 'high' or isRead eq false");
-    await supabase
-      .from("feed_events")
-      .insert({
-        user_id: userId,
-        kind: "log",
-        message: `Outlook Agent scanned ${messages.length} important emails`,
-      });
+    await supabase.from("feed_events").insert({
+      user_id: userId,
+      kind: "log",
+      message: `Outlook Agent scanned ${messages.length} important emails`,
+    });
 
     if (messages.length === 0) {
       const summary = "No unread or high-importance Outlook emails need attention right now.";
@@ -235,13 +233,11 @@ export const sendOutlookEmail = createServerFn({ method: "POST" })
         },
       }),
     });
-    await supabase
-      .from("feed_events")
-      .insert({
-        user_id: userId,
-        kind: "log",
-        message: `Email Agent sent Outlook email to ${data.to}`,
-      });
+    await supabase.from("feed_events").insert({
+      user_id: userId,
+      kind: "log",
+      message: `Email Agent sent Outlook email to ${data.to}`,
+    });
     return { ok: true };
   });
 
@@ -309,15 +305,13 @@ export const makeTaskFromOutlookEmail = createServerFn({ method: "POST" })
       .from("agents")
       .update({ task_count: (agent.task_count ?? 0) + 1 })
       .eq("id", agent.id);
-    await supabase
-      .from("feed_events")
-      .insert({
-        user_id: userId,
-        kind: "task_created",
-        agent_id: agent.id,
-        task_id: task.id,
-        message: `Created task from Outlook email: ${email.subject}`,
-      });
+    await supabase.from("feed_events").insert({
+      user_id: userId,
+      kind: "task_created",
+      agent_id: agent.id,
+      task_id: task.id,
+      message: `Created task from Outlook email: ${email.subject}`,
+    });
 
     return { ok: true, taskId: task.id, plan };
   });
