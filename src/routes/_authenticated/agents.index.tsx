@@ -7,7 +7,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { NewAgentModal } from "@/components/new-agent-modal";
 import { AUTONOMY_LABELS, timeAgo } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/agents")({
+export const Route = createFileRoute("/_authenticated/agents/")({
   component: AgentsPage,
   head: () => ({ meta: [{ title: "Agents — AgentOS" }] }),
 });
