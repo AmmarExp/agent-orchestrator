@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Crown, Send, Link2, RefreshCw, Bot, Clock } from "lucide-react";
+import { Crown, Send, Link2, RefreshCw, Bot, Clock, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-store";
@@ -202,12 +202,15 @@ function ChiefPage() {
               Generate link code
             </button>
             {data.linkCode && (
-              <code
-                className="px-3 py-2 rounded-md font-mono text-[14px] font-bold tracking-widest"
-                style={{ background: "var(--color-surface)", border: "1px dashed var(--color-border-token)" }}
-              >
-                /link {data.linkCode}
-              </code>
+              <div className="flex items-center gap-2">
+                <code
+                  className="px-3 py-2 rounded-md font-mono text-[14px] font-bold tracking-widest"
+                  style={{ background: "var(--color-surface)", border: "1px dashed var(--color-border-token)" }}
+                >
+                  /link {data.linkCode}
+                </code>
+                <CopyButton text={`/link ${data.linkCode}`} />
+              </div>
             )}
           </div>
           {data.linkCode && data.linkCodeExpiresAt && (
@@ -315,6 +318,36 @@ function StatusCell({ label, value, ok }: { label: string; value: string; ok?: b
         {value}
       </div>
     </div>
+  );
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      title="Copy to clipboard"
+      className="flex items-center justify-center w-8 h-8 rounded-md transition-colors"
+      style={{
+        background: copied ? "#22c55e22" : "var(--color-surface)",
+        border: "1px solid var(--color-border-token)",
+        color: copied ? "#22c55e" : "var(--color-text-muted)",
+      }}
+    >
+      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+    </button>
   );
 }
 
