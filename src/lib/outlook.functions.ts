@@ -185,7 +185,7 @@ export const summarizeOutlookEmails = createServerFn({ method: "POST" })
         message: credentials.message,
       };
 
-    const messages = await fetchOutlookMessages(10, "importance eq 'high' or isRead eq false");
+    const messages = await fetchOutlookMessages(10, "isRead eq false");
     await supabase.from("feed_events").insert({
       user_id: userId,
       kind: "log",
