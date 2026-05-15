@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { timingSafeEqual } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { deriveTelegramWebhookSecret, sendTelegramMessage } from "@/lib/telegram.server";
-import { runChiefForUser } from "@/lib/chief.functions";
+import { runChiefForUser } from "@/lib/chief.server";
 
 function safeEq(a: string, b: string) {
   const A = Buffer.from(a);
