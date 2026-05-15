@@ -10,8 +10,8 @@
  * ============================================ */
 
 @theme inline {
-  --font-sans: 'Satoshi', 'Inter', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: "Satoshi", "Inter", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
 
   --radius-sm: var(--radius-sm-token);
   --radius-md: var(--radius-md-token);

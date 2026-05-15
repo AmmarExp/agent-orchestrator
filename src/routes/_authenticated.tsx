@@ -19,7 +19,10 @@ function AuthenticatedLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh flex items-center justify-center" style={{ color: "var(--color-text-muted)" }}>
+      <div
+        className="min-h-dvh flex items-center justify-center"
+        style={{ color: "var(--color-text-muted)" }}
+      >
         Loading…
       </div>
     );
@@ -52,7 +55,10 @@ function MobileNav() {
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-[120] grid grid-cols-4"
-      style={{ background: "var(--color-surface)", borderTop: "1px solid var(--color-border-token)" }}
+      style={{
+        background: "var(--color-surface)",
+        borderTop: "1px solid var(--color-border-token)",
+      }}
     >
       {mobileItems.map((item) => {
         const Icon = item.icon;

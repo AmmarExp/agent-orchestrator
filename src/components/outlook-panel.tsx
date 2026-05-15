@@ -156,7 +156,10 @@ export function OutlookPanel() {
                 <div className="flex items-start gap-3">
                   <div
                     className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                    style={{ background: "var(--color-outlook-highlight)", color: "var(--color-outlook)" }}
+                    style={{
+                      background: "var(--color-outlook-highlight)",
+                      color: "var(--color-outlook)",
+                    }}
                   >
                     <Mail className="w-4 h-4" />
                   </div>
