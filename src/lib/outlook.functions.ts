@@ -222,6 +222,8 @@ export const sendOutlookEmail = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const credentials = getOutlookCredentials();
+    if (!credentials.connected) return { ok: false, message: credentials.message };
     await getOrCreateEmailAgent(supabase, userId);
     await callOutlook("/me/sendMail", {
       method: "POST",
