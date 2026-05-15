@@ -15,7 +15,7 @@ export function NewAgentModal({ open, onClose, onCreated }: Props) {
   const userId = useAuth((s) => s.user?.id);
   const [name, setName] = useState("");
   const [role, setRole] = useState<(typeof ROLE_OPTIONS)[number]>("Research");
-  const [model, setModel] = useState(SUPPORTED_MODELS[0].id);
+  const [model, setModel] = useState<string>(SUPPORTED_MODELS[0].id);
   const [systemPrompt, setSystemPrompt] = useState("");
   const [tools, setTools] = useState<string[]>([]);
   const [autonomy, setAutonomy] = useState(2);
