@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Bot, MoreHorizontal, Trash2, Copy, Pause, Play } from "lucide-react";
+import { Plus, Bot, Trash2, Copy, Pause, Play } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-store";
 import { StatusBadge } from "@/components/status-badge";
