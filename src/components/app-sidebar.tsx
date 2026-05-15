@@ -1,8 +1,9 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Bot, ListChecks, Settings, Cpu } from "lucide-react";
+import { LayoutDashboard, Bot, ListChecks, Settings, Cpu, Crown } from "lucide-react";
 
 const items = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/chief", label: "Chief", icon: Crown },
   { to: "/agents", label: "Agents", icon: Bot },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/settings", label: "Settings", icon: Settings },
