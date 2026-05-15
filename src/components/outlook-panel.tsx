@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Mail, Send, Sparkles, PlusCircle, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
@@ -44,7 +44,7 @@ export function OutlookPanel() {
   const [sendForm, setSendForm] = useState({ to: "", subject: "", body: "" });
   const [sending, setSending] = useState(false);
 
-  async function refresh() {
+  const refresh = useCallback(async () => {
     setLoading(true);
     try {
       const result = await loadMessages({ data: { mode: "important", limit: 12 } });
@@ -58,11 +58,11 @@ export function OutlookPanel() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [loadMessages]);
 
   useEffect(() => {
     refresh();
-  }, []);
+  }, [refresh]);
 
   async function runSummary() {
     setSummary("");
