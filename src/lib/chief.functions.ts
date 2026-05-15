@@ -42,7 +42,7 @@ export const getChiefStatus = createServerFn({ method: "GET" })
     const [{ data: profile }, { data: chief }, { data: messages }] = await Promise.all([
       supabase
         .from("profiles")
-        .select("telegram_chat_id, telegram_link_code")
+        .select("telegram_chat_id, telegram_link_code, telegram_link_code_expires_at")
         .eq("id", userId)
         .maybeSingle(),
       supabase
@@ -75,6 +75,7 @@ export const getChiefStatus = createServerFn({ method: "GET" })
       botUsername,
       linkedChatId: profile?.telegram_chat_id ?? null,
       linkCode: profile?.telegram_link_code ?? null,
+      linkCodeExpiresAt: profile?.telegram_link_code_expires_at ?? null,
       chief: chief ?? null,
       messages: (messages ?? []).reverse(),
     };

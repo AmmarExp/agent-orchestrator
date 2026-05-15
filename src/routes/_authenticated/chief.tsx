@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Crown, Send, Link2, RefreshCw, Bot } from "lucide-react";
+import { Crown, Send, Link2, RefreshCw, Bot, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-store";
@@ -100,7 +100,7 @@ function ChiefPage() {
   const handleGenCode = async () => {
     try {
       await genCode();
-      toast.success("Link code generated");
+      toast.success("Link code generated — valid for 1 hour");
       refetch();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed");
@@ -210,6 +210,14 @@ function ChiefPage() {
               </code>
             )}
           </div>
+          {data.linkCode && data.linkCodeExpiresAt && (
+            <div className="mt-2">
+              <LinkCodeCountdown
+                expiresAt={data.linkCodeExpiresAt}
+                onExpired={() => refetch()}
+              />
+            </div>
+          )}
         </div>
       )}
 
@@ -306,6 +314,53 @@ function StatusCell({ label, value, ok }: { label: string; value: string; ok?: b
         />
         {value}
       </div>
+    </div>
+  );
+}
+
+function LinkCodeCountdown({ expiresAt, onExpired }: { expiresAt: string; onExpired: () => void }) {
+  const getSecondsLeft = () => Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000));
+  const [secondsLeft, setSecondsLeft] = useState(getSecondsLeft);
+
+  useEffect(() => {
+    if (secondsLeft === 0) {
+      onExpired();
+      return;
+    }
+    const id = setInterval(() => {
+      const s = getSecondsLeft();
+      setSecondsLeft(s);
+      if (s === 0) {
+        clearInterval(id);
+        onExpired();
+      }
+    }, 1000);
+    return () => clearInterval(id);
+  }, [expiresAt]);
+
+  const minutes = Math.floor(secondsLeft / 60);
+  const seconds = secondsLeft % 60;
+  const isUrgent = secondsLeft < 120;
+
+  if (secondsLeft === 0) {
+    return (
+      <div className="flex items-center gap-1.5 text-[12px]" style={{ color: "#ef4444" }}>
+        <Clock className="w-3 h-3" />
+        Code expired — generate a new one
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="flex items-center gap-1.5 text-[12px]"
+      style={{ color: isUrgent ? "#f59e0b" : "var(--color-text-muted)" }}
+    >
+      <Clock className="w-3 h-3" />
+      Expires in{" "}
+      <span className="font-mono font-semibold">
+        {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
+      </span>
     </div>
   );
 }
