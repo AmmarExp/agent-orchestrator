@@ -1,14 +1,32 @@
 import { useRouterState, useNavigate } from "@tanstack/react-router";
-import { Search, LogOut } from "lucide-react";
+import { Search, LogOut, Bell } from "lucide-react";
 import { useAuth } from "@/lib/auth-store";
+import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { getOutlookUnreadCount } from "@/lib/outlook.functions";
 
 export function Topbar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const navigate = useNavigate();
   const signOut = useAuth((s) => s.signOut);
   const user = useAuth((s) => s.user);
+  const getUnread = useServerFn(getOutlookUnreadCount);
+  const [unread, setUnread] = useState<number | null>(null);
 
   const crumb = pathname.split("/").filter(Boolean)[0] ?? "dashboard";
+
+  useEffect(() => {
+    if (!user) return;
+    let mounted = true;
+    getUnread()
+      .then((result) => {
+        if (mounted) setUnread(result.connected ? result.unread : null);
+      })
+      .catch(() => {
+        if (mounted) setUnread(null);
+      });
+    return () => { mounted = false; };
+  }, [getUnread, user]);
 
   return (
     <header
@@ -41,6 +59,21 @@ export function Topbar() {
         >
           ⌘K
         </kbd>
+      </button>
+      <button
+        className="relative w-8 h-8 rounded-md flex items-center justify-center transition-colors hover:bg-[var(--color-surface-offset)]"
+        style={{ color: "var(--color-text-muted)" }}
+        title="Outlook unread emails"
+      >
+        <Bell className="w-4 h-4" />
+        {unread !== null && unread > 0 && (
+          <span
+            className="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full text-[10px] font-bold flex items-center justify-center"
+            style={{ background: "#0078d4", color: "#fff" }}
+          >
+            {unread > 99 ? "99+" : unread}
+          </span>
+        )}
       </button>
       <div className="text-xs hidden sm:block" style={{ color: "var(--color-text-faint)" }}>
         {user?.email}
