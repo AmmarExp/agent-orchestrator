@@ -4,6 +4,7 @@ import { TrendingUp, Bot, ListChecks, CheckCircle2, Activity } from "lucide-reac
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth-store";
 import { LiveFeed } from "@/components/live-feed";
+import { OutlookPanel } from "@/components/outlook-panel";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
@@ -89,7 +90,11 @@ function DashboardPage() {
         })}
       </div>
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: "1fr 360px" }}>
+      <div className="mb-6">
+        <OutlookPanel />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1fr_360px]">
         <div className="rounded-lg p-10 text-center"
           style={{ background: "var(--color-surface)", border: "1px solid var(--color-border-token)" }}>
           <div className="text-[14px] font-semibold mb-1">Welcome to AgentOS</div>
