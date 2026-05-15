@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-store";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Topbar } from "@/components/topbar";
-import { Bot, LayoutDashboard, ListChecks, Settings } from "lucide-react";
+import { Bot, LayoutDashboard, ListChecks, Settings, Crown } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   component: AuthenticatedLayout,
@@ -46,6 +46,7 @@ function AuthenticatedLayout() {
 const mobileItems = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard },
   { to: "/agents", label: "Agents", icon: Bot },
+  { to: "/chief", label: "Chief", icon: Crown },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
@@ -54,7 +55,7 @@ function MobileNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[120] grid grid-cols-4"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-[120] grid grid-cols-5"
       style={{
         background: "var(--color-surface)",
         borderTop: "1px solid var(--color-border-token)",
