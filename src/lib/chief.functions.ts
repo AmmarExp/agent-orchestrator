@@ -22,7 +22,7 @@ export const ensureChiefAgent = createServerFn({ method: "POST" })
         user_id: userId,
         name: "Chief",
         role: "Master Orchestrator",
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.0-flash",
         system_prompt: CHIEF_SYSTEM_PROMPT,
         tools: ["Telegram", "AI", "Agent Factory"],
         autonomy: 3,
@@ -59,7 +59,7 @@ export const getChiefStatus = createServerFn({ method: "GET" })
         .limit(50),
     ]);
 
-    const tgConnected = Boolean(process.env.LOVABLE_API_KEY && process.env.TELEGRAM_API_KEY);
+    const tgConnected = Boolean(process.env.TELEGRAM_API_KEY);
     let botUsername: string | null = null;
     if (tgConnected) {
       try {

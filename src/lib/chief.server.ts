@@ -56,7 +56,7 @@ export async function runChiefForUser(
 
   const gateway = createLovableAiGateway(apiKey);
   const { text } = await generateText({
-    model: gateway("google/gemini-3-flash-preview"),
+    model: gateway("google/gemini-2.0-flash"),
     system: CHIEF_SYSTEM_PROMPT,
     prompt: `Current agent workforce:\n${workforce || "(none yet)"}\n\nRecent conversation:\n${transcript}\n\nOwner just said: "${userText}"\n\nReply now (same language as the owner, concise, actionable).`,
   });

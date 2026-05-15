@@ -1,12 +1,11 @@
 import { createHash } from "crypto";
 
-const TG_GATEWAY = "https://connector-gateway.lovable.dev/telegram";
+const TG_BASE = "https://api.telegram.org/bot";
 
 export function getTelegramCreds() {
-  const lovable = process.env.LOVABLE_API_KEY;
   const tg = process.env.TELEGRAM_API_KEY;
-  if (!lovable || !tg) return null;
-  return { lovable, tg };
+  if (!tg) return null;
+  return { tg };
 }
 
 export function deriveTelegramWebhookSecret(tgApiKey: string) {
@@ -16,13 +15,9 @@ export function deriveTelegramWebhookSecret(tgApiKey: string) {
 export async function tgCall<T = unknown>(method: string, body: Record<string, unknown>): Promise<T> {
   const c = getTelegramCreds();
   if (!c) throw new Error("Telegram is not connected.");
-  const r = await fetch(`${TG_GATEWAY}/${method}`, {
+  const r = await fetch(`${TG_BASE}${c.tg}/${method}`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${c.lovable}`,
-      "X-Connection-Api-Key": c.tg,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
   const text = await r.text();
