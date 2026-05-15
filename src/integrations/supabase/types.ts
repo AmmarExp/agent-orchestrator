@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      agents: {
+        Row: {
+          autonomy: number
+          created_at: string
+          id: string
+          model: string
+          name: string
+          role: string
+          status: Database["public"]["Enums"]["agent_status"]
+          system_prompt: string
+          task_count: number
+          tools: string[]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          autonomy?: number
+          created_at?: string
+          id?: string
+          model?: string
+          name: string
+          role?: string
+          status?: Database["public"]["Enums"]["agent_status"]
+          system_prompt?: string
+          task_count?: number
+          tools?: string[]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          autonomy?: number
+          created_at?: string
+          id?: string
+          model?: string
+          name?: string
+          role?: string
+          status?: Database["public"]["Enums"]["agent_status"]
+          system_prompt?: string
+          task_count?: number
+          tools?: string[]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feed_events: {
+        Row: {
+          agent_id: string | null
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["feed_kind"]
+          message: string
+          task_id: string | null
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["feed_kind"]
+          message: string
+          task_id?: string | null
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["feed_kind"]
+          message?: string
+          task_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_events_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feed_events_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -41,6 +131,91 @@ export type Database = {
         }
         Relationships: []
       }
+      task_steps: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          task_id: string
+          type: Database["public"]["Enums"]["step_type"]
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          task_id: string
+          type: Database["public"]["Enums"]["step_type"]
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          task_id?: string
+          type?: Database["public"]["Enums"]["step_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_steps_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          agent_id: string
+          completed_at: string | null
+          created_at: string
+          description: string
+          due_date: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -49,7 +224,19 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      agent_status: "idle" | "running" | "error"
+      feed_kind:
+        | "agent_created"
+        | "agent_updated"
+        | "agent_deleted"
+        | "task_created"
+        | "task_started"
+        | "task_completed"
+        | "task_failed"
+        | "log"
+      step_type: "thought" | "action" | "result"
+      task_priority: "low" | "med" | "high"
+      task_status: "queued" | "running" | "completed" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -176,6 +363,21 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      agent_status: ["idle", "running", "error"],
+      feed_kind: [
+        "agent_created",
+        "agent_updated",
+        "agent_deleted",
+        "task_created",
+        "task_started",
+        "task_completed",
+        "task_failed",
+        "log",
+      ],
+      step_type: ["thought", "action", "result"],
+      task_priority: ["low", "med", "high"],
+      task_status: ["queued", "running", "completed", "failed"],
+    },
   },
 } as const
