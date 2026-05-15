@@ -1,7 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText } from "ai";
 import { z } from "zod";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import type { Database } from "@/integrations/supabase/types";
 import { createLovableAiGateway } from "./ai-gateway";
 
 const OUTLOOK_GATEWAY_URL = "https://connector-gateway.lovable.dev/microsoft_outlook";
@@ -89,7 +91,7 @@ async function fetchOutlookMessages(limit: number, filter?: string) {
   return (payload.value ?? []).map(toOutlookMessage).filter((message) => message.id);
 }
 
-async function getOrCreateEmailAgent(supabase: { from: (table: string) => any }, userId: string) {
+async function getOrCreateEmailAgent(supabase: SupabaseClient<Database>, userId: string) {
   const { data: existing } = await supabase
     .from("agents")
     .select("id, name, task_count")
