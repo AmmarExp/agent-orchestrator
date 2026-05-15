@@ -1,11 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  LayoutDashboard,
-  Bot,
-  ListChecks,
-  Settings,
-  Cpu,
-} from "lucide-react";
+import { LayoutDashboard, Bot, ListChecks, Settings, Cpu } from "lucide-react";
 
 const items = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -18,7 +12,7 @@ export function AppSidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   return (
     <aside
-      className="flex flex-col fixed top-0 left-0 h-dvh z-[100]"
+      className="hidden md:flex flex-col fixed top-0 left-0 h-dvh z-[100]"
       style={{
         width: "var(--sidebar-w)",
         background: "var(--color-surface)",
@@ -34,7 +28,10 @@ export function AppSidebar() {
       >
         <div
           className="w-7 h-7 rounded-md flex items-center justify-center"
-          style={{ background: "var(--color-primary-highlight)", color: "var(--color-primary-token)" }}
+          style={{
+            background: "var(--color-primary-highlight)",
+            color: "var(--color-primary-token)",
+          }}
         >
           <Cpu className="w-4 h-4" />
         </div>

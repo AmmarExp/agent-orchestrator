@@ -10,8 +10,8 @@
  * ============================================ */
 
 @theme inline {
-  --font-sans: 'Satoshi', 'Inter', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: "Satoshi", "Inter", system-ui, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
 
   --radius-sm: var(--radius-sm-token);
   --radius-md: var(--radius-md-token);
@@ -57,6 +57,8 @@
   --color-warning-highlight: var(--color-warning-highlight);
   --color-gold: var(--color-gold);
   --color-gold-highlight: var(--color-gold-highlight);
+  --color-outlook: var(--color-outlook);
+  --color-outlook-highlight: var(--color-outlook-highlight);
 }
 
 /* Dark theme (default) */
@@ -86,6 +88,8 @@
   --color-warning-highlight: #321d12;
   --color-gold: #e8af34;
   --color-gold-highlight: #2e2510;
+  --color-outlook: #62b5f7;
+  --color-outlook-highlight: #12283a;
 
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.25);
   --shadow-md: 0 4px 12px rgb(0 0 0 / 0.35);
@@ -126,6 +130,17 @@
   --color-warning-highlight: #ddcfc6;
   --color-gold: #d19900;
   --color-gold-highlight: #e9e0c6;
+  --color-outlook: #0078d4;
+  --color-outlook-highlight: #d9ecfb;
+}
+
+@media (max-width: 768px) {
+  :root,
+  [data-theme="dark"],
+  [data-theme="light"] {
+    --sidebar-w: 0px;
+    --topbar-h: 52px;
+  }
 }
 
 @layer base {
