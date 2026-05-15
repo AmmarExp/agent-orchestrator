@@ -39,11 +39,23 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             const code = linkMatch[1].toUpperCase();
             const { data: profile } = await supabaseAdmin
               .from("profiles")
-              .select("id")
+              .select("id, telegram_link_code_expires_at")
               .eq("telegram_link_code", code)
               .maybeSingle();
             if (!profile) {
-              await sendTelegramMessage(chatId, "❌ Invalid or expired link code. Generate a new one in AgentOS → Chief.");
+              await sendTelegramMessage(chatId, "❌ Invalid link code. Generate a new one in AgentOS → Chief.");
+              return Response.json({ ok: true });
+            }
+            const expiresAt = profile.telegram_link_code_expires_at
+              ? new Date(profile.telegram_link_code_expires_at)
+              : null;
+            if (!expiresAt || expiresAt < new Date()) {
+              // Clear the stale code
+              await supabaseAdmin
+                .from("profiles")
+                .update({ telegram_link_code: null, telegram_link_code_expires_at: null })
+                .eq("id", profile.id);
+              await sendTelegramMessage(chatId, "⏰ This link code has expired. Please generate a new one in AgentOS → Chief.");
               return Response.json({ ok: true });
             }
             await supabaseAdmin
