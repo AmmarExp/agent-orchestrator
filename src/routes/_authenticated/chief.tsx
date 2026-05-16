@@ -130,7 +130,8 @@ function ChiefPage() {
       // Always use the stable project dev URL for Telegram webhooks — preview URLs
       // (id-preview--...) can redirect through auth and are not stable across builds.
       const projectId = "9b55bede-d52a-4cf7-a7de-0d8d31175721";
-      const host = window.location.host.includes("lovable.app") ? "lovable.app" : window.location.host.split(".").slice(-2).join(".");
+      const hostname = window.location.hostname;
+      const host = hostname.endsWith("lovable.app") ? "lovable.app" : "lovable.app";
       const url = `https://project--${projectId}-dev.${host}/api/public/telegram/webhook`;
       const res = await registerHook({ data: { url } });
       toast.success(res.ok ? `Webhook registered ✓ → ${url}` : `Webhook: ${res.description ?? "unknown"}`);
