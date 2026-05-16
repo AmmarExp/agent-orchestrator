@@ -26,10 +26,10 @@ export async function tgCall<T = unknown>(method: string, body: Record<string, u
     body: JSON.stringify(body),
   });
   const text = await r.text();
-  if (!r.ok) throw new Error(`Telegram ${method} failed [${r.status}]: ${text}`);
+  if (!r.ok) throw new Error(`Telegram ${method} failed [${r.status}]: ${text || r.statusText}`);
   return (text ? JSON.parse(text) : {}) as T;
 }
 
 export async function sendTelegramMessage(chatId: number | string, text: string) {
-  return tgCall("sendMessage", { chat_id: chatId, text, parse_mode: "HTML" });
+  return tgCall("sendMessage", { chat_id: chatId, text });
 }

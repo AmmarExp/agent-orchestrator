@@ -1,7 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-import { sendTelegramMessage } from "@/lib/telegram.server";
+import { deriveTelegramWebhookSecret, sendTelegramMessage } from "@/lib/telegram.server";
 import { runChiefForUser } from "@/lib/chief.server";
+import { timingSafeEqual } from "crypto";
+
+function safeEqual(a: string, b: string) {
+  const left = Buffer.from(a);
+  const right = Buffer.from(b);
+  return left.length === right.length && timingSafeEqual(left, right);
+}
 
 export const Route = createFileRoute("/api/public/telegram/webhook")({
   server: {
@@ -9,6 +16,11 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
       POST: async ({ request }) => {
         const tg = process.env.TELEGRAM_API_KEY?.trim();
         if (!tg) return new Response("Telegram not configured", { status: 500 });
+
+        const actualSecret = request.headers.get("X-Telegram-Bot-Api-Secret-Token") ?? "";
+        if (!safeEqual(actualSecret, deriveTelegramWebhookSecret(tg))) {
+          return new Response("Unauthorized", { status: 401 });
+        }
 
         let update: {
           update_id?: number;
@@ -76,7 +88,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           if (!profile) {
             await sendTelegramMessage(
               chatId,
-              "👋 I'm Chief from AgentOS. To link this chat, open AgentOS → Chief, generate a code, then send:\n<code>/link YOURCODE</code>",
+              "👋 I'm Chief from AgentOS. To link this chat, open AgentOS → Chief, generate a code, then send:\n/link YOURCODE",
             );
             return Response.json({ ok: true });
           }
