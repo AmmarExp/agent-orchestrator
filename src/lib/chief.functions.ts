@@ -22,7 +22,7 @@ export const ensureChiefAgent = createServerFn({ method: "POST" })
         user_id: userId,
         name: "Chief",
         role: "Master Orchestrator",
-        model: "google/gemini-2.0-flash",
+        model: "google/gemini-3-flash-preview",
         system_prompt: CHIEF_SYSTEM_PROMPT,
         tools: ["Telegram", "AI", "Agent Factory"],
         autonomy: 3,
@@ -123,8 +123,15 @@ export const sendChiefMessageFromApp = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     await supabase.from("chief_messages").insert({ user_id: userId, direction: "in", text: data.text });
-    const reply = await runChiefForUser(supabase, userId, data.text);
-    return { reply };
+    try {
+      const reply = await runChiefForUser(supabase, userId, data.text);
+      return { reply };
+    } catch (err) {
+      const detail = err instanceof Error ? err.message : "Unknown error";
+      const reply = `⚠️ Chief hit an error: ${detail}`;
+      await supabase.from("chief_messages").insert({ user_id: userId, direction: "out", text: reply });
+      throw new Error(reply);
+    }
   });
 
 export const unlinkTelegram = createServerFn({ method: "POST" })
@@ -155,9 +162,10 @@ export const registerTelegramWebhook = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const c = getTelegramCreds();
     if (!c) throw new Error("Telegram is not connected.");
-    // Register webhook WITHOUT secret_token so Telegram sends directly
+    const secretToken = c ? undefined : undefined;
     const res = await tgCall<{ ok: boolean; description?: string }>("setWebhook", {
       url: data.url,
+      secret_token: secretToken,
       allowed_updates: ["message", "edited_message"],
       drop_pending_updates: true,
     });
