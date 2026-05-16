@@ -88,7 +88,7 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
           if (!profile) {
             await sendTelegramMessage(
               chatId,
-              "👋 I'm Chief from AgentOS. To link this chat, open AgentOS → Chief, generate a code, then send:\n<code>/link YOURCODE</code>",
+              "👋 I'm Chief from AgentOS. To link this chat, open AgentOS → Chief, generate a code, then send:\n/link YOURCODE",
             );
             return Response.json({ ok: true });
           }
