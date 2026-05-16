@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { CHIEF_SYSTEM_PROMPT, runChiefForUser } from "./chief.server";
-import { getTelegramCreds, tgCall } from "./telegram.server";
+import { deriveTelegramWebhookSecret, getTelegramCreds, tgCall } from "./telegram.server";
 
 export const ensureChiefAgent = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -162,10 +162,9 @@ export const registerTelegramWebhook = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const c = getTelegramCreds();
     if (!c) throw new Error("Telegram is not connected.");
-    const secretToken = c ? undefined : undefined;
     const res = await tgCall<{ ok: boolean; description?: string }>("setWebhook", {
       url: data.url,
-      secret_token: secretToken,
+      secret_token: deriveTelegramWebhookSecret(c.tg),
       allowed_updates: ["message", "edited_message"],
       drop_pending_updates: true,
     });
