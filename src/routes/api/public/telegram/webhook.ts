@@ -88,13 +88,9 @@ export const Route = createFileRoute("/api/public/telegram/webhook")({
             telegram_message_id: msg?.message_id ?? null,
           });
 
+          // runChiefForUser already persists the "out" message to chief_messages
           const reply = await runChiefForUser(supabaseAdmin, profile.id, text);
           await sendTelegramMessage(chatId, reply);
-          await supabaseAdmin.from("chief_messages").insert({
-            user_id: profile.id,
-            direction: "out",
-            text: reply,
-          });
         } catch (err) {
           const message = err instanceof Error ? err.message : "Unknown error";
           console.error("[telegram webhook]", message);
