@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_memories: {
+        Row: {
+          agent_id: string
+          content: string
+          created_at: string
+          embedding: string | null
+          id: string
+          importance: number
+          kind: Database["public"]["Enums"]["memory_kind"]
+          last_accessed_at: string
+          tags: string[]
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          content: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          importance?: number
+          kind?: Database["public"]["Enums"]["memory_kind"]
+          last_accessed_at?: string
+          tags?: string[]
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          importance?: number
+          kind?: Database["public"]["Enums"]["memory_kind"]
+          last_accessed_at?: string
+          tags?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_memories_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agents: {
         Row: {
           autonomy: number
@@ -62,11 +109,49 @@ export type Database = {
         }
         Relationships: []
       }
+      chief_memories: {
+        Row: {
+          content: string
+          created_at: string
+          embedding: string | null
+          id: string
+          importance: number
+          kind: Database["public"]["Enums"]["memory_kind"]
+          last_accessed_at: string
+          tags: string[]
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          importance?: number
+          kind?: Database["public"]["Enums"]["memory_kind"]
+          last_accessed_at?: string
+          tags?: string[]
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          importance?: number
+          kind?: Database["public"]["Enums"]["memory_kind"]
+          last_accessed_at?: string
+          tags?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       chief_messages: {
         Row: {
           created_at: string
           direction: Database["public"]["Enums"]["chief_msg_direction"]
           id: string
+          is_summary: boolean
+          mood: string | null
           telegram_message_id: number | null
           text: string
           user_id: string
@@ -75,6 +160,8 @@ export type Database = {
           created_at?: string
           direction: Database["public"]["Enums"]["chief_msg_direction"]
           id?: string
+          is_summary?: boolean
+          mood?: string | null
           telegram_message_id?: number | null
           text: string
           user_id: string
@@ -83,6 +170,8 @@ export type Database = {
           created_at?: string
           direction?: Database["public"]["Enums"]["chief_msg_direction"]
           id?: string
+          is_summary?: boolean
+          mood?: string | null
           telegram_message_id?: number | null
           text?: string
           user_id?: string
@@ -260,7 +349,36 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      match_agent_memories: {
+        Args: {
+          p_agent_id: string
+          p_match_count?: number
+          p_query_embedding: string
+        }
+        Returns: {
+          content: string
+          id: string
+          importance: number
+          kind: Database["public"]["Enums"]["memory_kind"]
+          similarity: number
+          tags: string[]
+        }[]
+      }
+      match_chief_memories: {
+        Args: {
+          p_match_count?: number
+          p_query_embedding: string
+          p_user_id: string
+        }
+        Returns: {
+          content: string
+          id: string
+          importance: number
+          kind: Database["public"]["Enums"]["memory_kind"]
+          similarity: number
+          tags: string[]
+        }[]
+      }
     }
     Enums: {
       agent_status: "idle" | "running" | "error"
@@ -274,6 +392,13 @@ export type Database = {
         | "task_completed"
         | "task_failed"
         | "log"
+      memory_kind:
+        | "fact"
+        | "preference"
+        | "emotion"
+        | "decision"
+        | "project"
+        | "summary"
       step_type: "thought" | "action" | "result"
       task_priority: "low" | "med" | "high"
       task_status: "queued" | "running" | "completed" | "failed"
@@ -415,6 +540,14 @@ export const Constants = {
         "task_completed",
         "task_failed",
         "log",
+      ],
+      memory_kind: [
+        "fact",
+        "preference",
+        "emotion",
+        "decision",
+        "project",
+        "summary",
       ],
       step_type: ["thought", "action", "result"],
       task_priority: ["low", "med", "high"],
