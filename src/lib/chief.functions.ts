@@ -170,3 +170,31 @@ export const registerTelegramWebhook = createServerFn({ method: "POST" })
     });
     return { ok: res.ok, description: res.description };
   });
+
+export const getChiefMemories = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { supabase, userId } = context;
+    const { data } = await supabase
+      .from("chief_memories")
+      .select("id, kind, content, importance, tags, created_at, last_accessed_at")
+      .eq("user_id", userId)
+      .order("importance", { ascending: false })
+      .order("last_accessed_at", { ascending: false })
+      .limit(50);
+    return { memories: data ?? [] };
+  });
+
+export const deleteChiefMemory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("chief_memories")
+      .delete()
+      .eq("id", data.id)
+      .eq("user_id", userId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
